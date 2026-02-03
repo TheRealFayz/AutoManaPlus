@@ -104,6 +104,8 @@ local SettingsFrame = CreateFrame("Frame", "AutoManaPlusSettings", UIParent)
 SettingsFrame:SetWidth(400)
 SettingsFrame:SetHeight(540)
 SettingsFrame:SetPoint("CENTER", UIParent, "CENTER")
+SettingsFrame:SetFrameStrata("DIALOG")
+SettingsFrame:SetFrameLevel(10)
 SettingsFrame:SetBackdrop({
   bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
   edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
