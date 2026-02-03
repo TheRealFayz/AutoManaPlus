@@ -1,25 +1,64 @@
-AutoMana 2.1
-===
-An addon to manage your mana consuming in Turtle WoW.  
+# AutoMana+
+
+AutoMana+ automatically uses mana and health consumables when casting spells in World of Warcraft 1.12 (Vanilla).
+
+Originally developed by **MarcelineVQ**, enhanced and modernized by **Fayz**.
+
+## Features
+
+- **Minimap Button** - Easy access settings via a Major Mana Potion icon on your minimap
+- **GUI Settings Panel** - Configure all options through an intuitive interface
+- **Percentage-Based Thresholds** - Set custom mana/health percentages (1-100%) for each consumable
+- **Flexible Group Size Control** - Configure minimum group size requirement (default: 1 for solo play)
+- **Combat Toggle** - Choose whether to activate only in combat or anytime
+- **Debug Mode** - Built-in troubleshooting with detailed debug messages
+
+## Supported Consumables
+
+- **Nordanaar Herbal Tea** / **Nightfin Soup** (Mana restoration)
+- **Major Mana Potion** (Mana restoration)
+- **Major Rejuvenation Potion** (Health restoration)
+- **Healthstone** (Health restoration)
+- **Flask of Distilled Wisdom** (Mana restoration on OOM)
+
+## Usage
+
+Once enabled, AutoMana+ will automatically detect when you cast spells and use the appropriate consumable based on your configured thresholds. 
+
+**Configure via Minimap Button:**
+- Click the Major Mana Potion icon on your minimap to open settings
+- Check/uncheck consumables to enable/disable them
+- Adjust sliders to set the mana/health percentage threshold for each consumable
+- Set minimum group size (1 for solo, higher for group/raid only)
+- Toggle combat-only mode
+- Enable debug mode for troubleshooting
+
+## Default Settings
+
+- **Enabled:** Yes
+- **Combat Only:** Yes
+- **Minimum Group Size:** 1 (works for solo players)
+- **Tea Threshold:** 25% mana
+- **Major Mana Potion Threshold:** 40% mana
+- **Major Rejuvenation Potion Threshold:** 30% health
+- **Healthstone Threshold:** 30% health
+- **Flask Threshold:** 10% mana
+
+## Compatibility
+
+- **Client:** World of Warcraft 1.12 (Vanilla)
+- **Requirements:** None - works with standard vanilla client
+- **No SuperWoW, Nampower, or other custom client required**
+
+## License
+
+LGPL v2.1
+
+## Credits
+
+- **Original Author:** MarcelineVQ
+- **Enhanced Version:** Fayz
+
 ---
-* 2.0 hooks spell casts without needing macros at all
----
-This addon uses mana consumes as soon as possible when you have enough mana missing. This means the items will be off cooldown sooner as you can't miss out on using them and can result in considerably more available mana throughout a fight.  
 
-I've previously made some macros that do this for you but having to toggle settings on more than one spell when I wanted to change my consume use on the fly was quite painful. To that end I've made this addon that automatically hooks into casts to avoid macro use at all.
-This is particularly useful for toggling mana potion use since on some bosses you don't care too much about potion cooldown.  
-
-`/automana` to see in game settings, the current settings are:
-* Toggle the addon being enabled
-* Toggle whether to use consumes only in combat
-* Choose the size of group you need to be in for the addon be active
-* Toggle using Tea
-* Toggle using Major Mana Potions
-* Toggle using Healthstones when below 30% hp, or below 2.5k hp
-* Toggle using Major Rejuvenation Potion
-* Toggle using Flask of Distilled Wisdom if you run out of mana
-
-Using a flask sets your mana to 2k if you have less than this, which means it's suitable as an (expensive) emergency potion.  
-If enabled, Major Rejuvenation will be used instead of Major Mana if you're missing enough health to benefit from it. In practise this rarely results in the mana if gives being wasted, despite triggering from health.  
-
-* This addon is made by and for `Weird Vibes` of Turtle WoW.  
+*AutoMana+ will automatically use consumables when casting spells based on your configured thresholds.*
