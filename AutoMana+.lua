@@ -31,6 +31,7 @@ local defaults =
   healthstone_threshold = 30, -- use when below 30% health
   flask_threshold = 10,      -- use when below 10% mana
   debug_mode = false,        -- show debug messages
+  disable_on_login = true,   -- automatically disable on fresh login
 }
 
 local consumables = {}
@@ -53,6 +54,15 @@ icon:SetHeight(20)
 icon:SetPoint("CENTER", 0, 1)
 icon:SetTexture("Interface\\Icons\\INV_Potion_76") -- Major Mana Potion
 
+-- Function to update icon appearance based on enabled state
+local function UpdateMinimapIcon()
+  if AutoManaSettings and AutoManaSettings.enabled then
+    icon:SetDesaturated(false)
+  else
+    icon:SetDesaturated(true)
+  end
+end
+
 -- Border
 local overlay = MinimapButton:CreateTexture(nil, "OVERLAY")
 overlay:SetWidth(53)
@@ -72,7 +82,13 @@ end
 MinimapButton:SetScript("OnEnter", function()
   GameTooltip:SetOwner(this, "ANCHOR_LEFT")
   GameTooltip:SetText("AutoMana+", 1, 1, 1)
-  GameTooltip:AddLine("Click to open settings", 0.8, 0.8, 0.8)
+  if AutoManaSettings and AutoManaSettings.enabled then
+    GameTooltip:AddLine("Status: |cFF00FF00Enabled|r", 0.8, 0.8, 0.8)
+  else
+    GameTooltip:AddLine("Status: |cFFFF0000Disabled|r", 0.8, 0.8, 0.8)
+  end
+  GameTooltip:AddLine("Left-click: Open settings", 0.8, 0.8, 0.8)
+  GameTooltip:AddLine("Right-click: Toggle on/off", 0.8, 0.8, 0.8)
   GameTooltip:Show()
 end)
 
@@ -86,7 +102,7 @@ end)
 
 local SettingsFrame = CreateFrame("Frame", "AutoManaPlusSettings", UIParent)
 SettingsFrame:SetWidth(400)
-SettingsFrame:SetHeight(510)
+SettingsFrame:SetHeight(540)
 SettingsFrame:SetPoint("CENTER", UIParent, "CENTER")
 SettingsFrame:SetBackdrop({
   bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -130,6 +146,10 @@ local function CreateCheckbox(parent, label, yOffset, setting)
   check:SetScript("OnClick", function()
     AutoManaSettings[setting] = not AutoManaSettings[setting]
     check:SetChecked(AutoManaSettings[setting])
+    -- Update minimap icon when enabled setting changes
+    if setting == "enabled" then
+      UpdateMinimapIcon()
+    end
   end)
   
   check:SetScript("OnShow", function()
@@ -182,59 +202,62 @@ CreateCheckbox(SettingsFrame, "Active only in combat", -100, "combat_only")
 -- Debug Mode
 CreateCheckbox(SettingsFrame, "Show debug messages", -130, "debug_mode")
 
+-- Disable on Login
+CreateCheckbox(SettingsFrame, "Disable on login (keeps state on /reload)", -160, "disable_on_login")
+
 -- Separator
 local sep1 = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-sep1:SetPoint("TOPLEFT", 30, -165)
+sep1:SetPoint("TOPLEFT", 30, -195)
 sep1:SetText("Consumables")
 
 -- Tea
-local teaCheck = CreateCheckbox(SettingsFrame, "Use Nordanaar Herbal Tea / Nightfin Soup", -195, "use_tea")
+local teaCheck = CreateCheckbox(SettingsFrame, "Use Nordanaar Herbal Tea / Nightfin Soup", -225, "use_tea")
 local teaLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-teaLabel:SetPoint("TOPLEFT", 235, -197)
+teaLabel:SetPoint("TOPLEFT", 235, -227)
 teaLabel:SetText("Mana <")
-CreateSlider(SettingsFrame, "Tea Threshold", 280, -202, "tea_threshold", 1, 100)
+CreateSlider(SettingsFrame, "Tea Threshold", 280, -232, "tea_threshold", 1, 100)
 
 -- Mana Potion
-local potionCheck = CreateCheckbox(SettingsFrame, "Use Major Mana Potion", -230, "use_potion")
+local potionCheck = CreateCheckbox(SettingsFrame, "Use Major Mana Potion", -260, "use_potion")
 local potionLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-potionLabel:SetPoint("TOPLEFT", 235, -232)
+potionLabel:SetPoint("TOPLEFT", 235, -262)
 potionLabel:SetText("Mana <")
-CreateSlider(SettingsFrame, "Potion Threshold", 280, -237, "potion_threshold", 1, 100)
+CreateSlider(SettingsFrame, "Potion Threshold", 280, -267, "potion_threshold", 1, 100)
 
 -- Rejuv Potion
-local rejuvCheck = CreateCheckbox(SettingsFrame, "Use Major Rejuvenation Potion", -265, "use_rejuv")
+local rejuvCheck = CreateCheckbox(SettingsFrame, "Use Major Rejuvenation Potion", -295, "use_rejuv")
 local rejuvLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-rejuvLabel:SetPoint("TOPLEFT", 235, -267)
+rejuvLabel:SetPoint("TOPLEFT", 235, -297)
 rejuvLabel:SetText("Health <")
-CreateSlider(SettingsFrame, "Rejuv Threshold", 280, -272, "rejuv_threshold", 1, 100)
+CreateSlider(SettingsFrame, "Rejuv Threshold", 280, -302, "rejuv_threshold", 1, 100)
 
 -- Healthstone
-local healthstoneCheck = CreateCheckbox(SettingsFrame, "Use Healthstone", -300, "use_healthstone")
+local healthstoneCheck = CreateCheckbox(SettingsFrame, "Use Healthstone", -330, "use_healthstone")
 local healthstoneLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-healthstoneLabel:SetPoint("TOPLEFT", 235, -302)
+healthstoneLabel:SetPoint("TOPLEFT", 235, -332)
 healthstoneLabel:SetText("Health <")
-CreateSlider(SettingsFrame, "Healthstone Threshold", 280, -307, "healthstone_threshold", 1, 100)
+CreateSlider(SettingsFrame, "Healthstone Threshold", 280, -337, "healthstone_threshold", 1, 100)
 
 -- Flask
-local flaskCheck = CreateCheckbox(SettingsFrame, "Use Flask of Distilled Wisdom", -335, "use_flask")
+local flaskCheck = CreateCheckbox(SettingsFrame, "Use Flask of Distilled Wisdom", -365, "use_flask")
 local flaskLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-flaskLabel:SetPoint("TOPLEFT", 235, -337)
+flaskLabel:SetPoint("TOPLEFT", 235, -367)
 flaskLabel:SetText("Mana <")
-CreateSlider(SettingsFrame, "Flask Threshold", 280, -342, "flask_threshold", 1, 100)
+CreateSlider(SettingsFrame, "Flask Threshold", 280, -372, "flask_threshold", 1, 100)
 
 -- Separator
 local sep2 = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-sep2:SetPoint("TOPLEFT", 30, -380)
+sep2:SetPoint("TOPLEFT", 30, -410)
 sep2:SetText("Group Size")
 
 -- Group Size Label
 local groupLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-groupLabel:SetPoint("TOPLEFT", 30, -410)
+groupLabel:SetPoint("TOPLEFT", 30, -440)
 groupLabel:SetText("Minimum group size:")
 
 -- Group Size Input
 local groupInput = CreateFrame("EditBox", nil, SettingsFrame, "InputBoxTemplate")
-groupInput:SetPoint("TOPLEFT", 160, -407)
+groupInput:SetPoint("TOPLEFT", 160, -437)
 groupInput:SetWidth(50)
 groupInput:SetHeight(20)
 groupInput:SetAutoFocus(false)
@@ -267,11 +290,24 @@ infoText:SetText("Thresholds show when to use each consumable based on mana/heal
 infoText:SetTextColor(0.7, 0.7, 0.7)
 
 -- Minimap button click handler
+MinimapButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 MinimapButton:SetScript("OnClick", function()
-  if SettingsFrame:IsVisible() then
-    SettingsFrame:Hide()
-  else
-    SettingsFrame:Show()
+  if arg1 == "LeftButton" then
+    -- Left click: toggle settings window
+    if SettingsFrame:IsVisible() then
+      SettingsFrame:Hide()
+    else
+      SettingsFrame:Show()
+    end
+  elseif arg1 == "RightButton" then
+    -- Right click: toggle enabled/disabled
+    AutoManaSettings.enabled = not AutoManaSettings.enabled
+    UpdateMinimapIcon()
+    -- Update the checkbox in settings if it's open
+    if SettingsFrame:IsVisible() then
+      SettingsFrame:Hide()
+      SettingsFrame:Show()
+    end
   end
 end)
 
@@ -454,6 +490,12 @@ function AutoMana(macro_body,fn)
       debug_print("Trying Healthstone")
       UseContainerItem(consumables.healthstone.bag,consumables.healthstone.slot)
       last_fired = now
+    elseif AutoManaSettings.use_healthstone and (health_perc < AutoManaSettings.healthstone_threshold) and not consumeReady(consumables.healthstone) then
+      debug_print("Healthstone not ready (cooldown)")
+    elseif AutoManaSettings.use_healthstone and (health_perc < AutoManaSettings.healthstone_threshold) and not consumables.healthstone then
+      debug_print("Healthstone not found in bags!")
+    elseif AutoManaSettings.use_healthstone and not (health_perc < AutoManaSettings.healthstone_threshold) then
+      debug_print(string.format("Healthstone threshold not met (Health: %.1f%%, Threshold: %d%%)", health_perc, AutoManaSettings.healthstone_threshold))
     elseif AutoManaSettings.use_potion and (mana_perc < AutoManaSettings.potion_threshold) and consumeReady(consumables.potion) then
       debug_print("Trying Potion")
       UseContainerItem(consumables.potion.bag,consumables.potion.slot)
@@ -516,7 +558,13 @@ end
 HookCasts() -- hook right now in case another addon does further hooks
 
 local function OnEvent()
-  if event == "UI_ERROR_MESSAGE" and arg1 == "Not enough mana" then
+  if event == "PLAYER_LOGIN" then
+    -- Disable addon on fresh login if setting is enabled (not on /reload)
+    if AutoManaSettings.disable_on_login then
+      AutoManaSettings.enabled = false
+      UpdateMinimapIcon()
+    end
+  elseif event == "UI_ERROR_MESSAGE" and arg1 == "Not enough mana" then
     if AutoManaSettings.use_flask then oom = true end
   elseif event == "ADDON_LOADED" then
     if not AutoManaSettings
@@ -528,6 +576,7 @@ local function OnEvent()
         end
         AutoManaSettings = s
     end
+    UpdateMinimapIcon() -- update icon appearance on load
   elseif event == "UNIT_INVENTORY_CHANGED" and arg1 == "player" then -- alch stone
     consumables.has_alchstone = hasAlchStone()
   elseif event == "BAG_UPDATE" then -- consume slot update
@@ -559,6 +608,7 @@ local function OnEvent()
   end
 end
 
+AutoManaFrame:RegisterEvent("PLAYER_LOGIN")
 AutoManaFrame:RegisterEvent("UI_ERROR_MESSAGE")
 AutoManaFrame:RegisterEvent("BAG_UPDATE")
 AutoManaFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
