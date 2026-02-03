@@ -2,7 +2,7 @@
 ## Title: AutoMana+
 ## Notes: Automatic Mana Consume Usage.  Originally by MarcelineVQ • Enhanced by Fayz
 ## X-Category: Interface Enhancements
-## Version: 1.0.3
+## Version: 1.0.4
 ## SavedVariablesPerCharacter: AutoManaSettings
 
 AutoMana+.lua
