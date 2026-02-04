@@ -28,7 +28,7 @@ Once enabled, AutoMana+ will automatically detect when you cast spells and use t
 **Configure via Minimap Button:**
 - Click the Major Mana Potion icon on your minimap to open settings
 - Check/uncheck consumables to enable/disable them
-- Adjust sliders to set the mana/health percentage threshold for each consumable
+- Easily enter the mana/health percentage threshold for each consumable
 - Set minimum group size (1 for solo, higher for group/raid only)
 - Toggle combat-only mode
 - Enable debug mode for troubleshooting
