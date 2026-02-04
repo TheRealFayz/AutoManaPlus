@@ -102,7 +102,7 @@ end)
 
 local SettingsFrame = CreateFrame("Frame", "AutoManaPlusSettings", UIParent)
 SettingsFrame:SetWidth(400)
-SettingsFrame:SetHeight(540)
+SettingsFrame:SetHeight(500)
 SettingsFrame:SetPoint("CENTER", UIParent, "CENTER")
 SettingsFrame:SetFrameStrata("DIALOG")
 SettingsFrame:SetFrameLevel(10)
@@ -118,6 +118,22 @@ SettingsFrame:RegisterForDrag("LeftButton")
 SettingsFrame:SetScript("OnDragStart", function() this:StartMoving() end)
 SettingsFrame:SetScript("OnDragStop", function() this:StopMovingOrSizing() end)
 SettingsFrame:Hide()
+
+-- ESC key closes the settings
+SettingsFrame:SetScript("OnKeyDown", function()
+  if arg1 == "ESCAPE" then
+    SettingsFrame:Hide()
+  end
+end)
+
+-- Enable keyboard focus when shown
+SettingsFrame:SetScript("OnShow", function()
+  this:EnableKeyboard(true)
+end)
+
+SettingsFrame:SetScript("OnHide", function()
+  this:EnableKeyboard(false)
+end)
 
 -- Title
 local title = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -161,38 +177,59 @@ local function CreateCheckbox(parent, label, yOffset, setting)
   return check
 end
 
--- Helper function to create sliders
-local function CreateSlider(parent, label, xOffset, yOffset, setting, minVal, maxVal)
-  local slider = CreateFrame("Slider", nil, parent)
-  slider:SetOrientation("HORIZONTAL")
-  slider:SetPoint("TOPLEFT", xOffset, yOffset)
-  slider:SetWidth(100)
-  slider:SetHeight(15)
-  slider:SetMinMaxValues(minVal, maxVal)
-  slider:SetValueStep(1)
-  slider:SetBackdrop({
-    bgFile = "Interface\\Buttons\\UI-SliderBar-Background",
-    edgeFile = "Interface\\Buttons\\UI-SliderBar-Border",
-    tile = true, tileSize = 8, edgeSize = 8,
-    insets = { left = 3, right = 3, top = 6, bottom = 6 }
+-- Helper function to create threshold input boxes
+local function CreateThresholdInput(parent, setting)
+  local input = CreateFrame("EditBox", nil, parent)
+  input:SetWidth(30)
+  input:SetHeight(20)
+  input:SetAutoFocus(false)
+  input:SetMaxLetters(3)
+  input:SetNumeric(true)
+  input:SetFontObject(GameFontHighlightSmall)
+  input:SetJustifyH("CENTER")
+  
+  -- Custom backdrop instead of InputBoxTemplate
+  input:SetBackdrop({
+    bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    tile = true, tileSize = 16, edgeSize = 16,
+    insets = { left = 3, right = 3, top = 3, bottom = 3 }
   })
-  slider:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
+  input:SetBackdropColor(0, 0, 0, 0.5)
+  input:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
   
-  local valueText = slider:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-  valueText:SetPoint("TOP", slider, "BOTTOM", 0, -2)
+  -- Add text insets so text doesn't overlap border
+  input:SetTextInsets(3, 3, 3, 3)
   
-  slider:SetScript("OnValueChanged", function()
-    local val = this:GetValue()
-    AutoManaSettings[setting] = val
-    valueText:SetText(val .. "%")
+  input:SetScript("OnShow", function()
+    this:SetText(AutoManaSettings[setting])
   end)
   
-  slider:SetScript("OnShow", function()
-    this:SetValue(AutoManaSettings[setting])
-    valueText:SetText(AutoManaSettings[setting] .. "%")
+  input:SetScript("OnEnterPressed", function()
+    local val = tonumber(this:GetText())
+    if val and val >= 1 and val <= 100 then
+      AutoManaSettings[setting] = val
+    else
+      this:SetText(AutoManaSettings[setting])
+    end
+    this:ClearFocus()
   end)
   
-  return slider
+  input:SetScript("OnEscapePressed", function()
+    this:SetText(AutoManaSettings[setting])
+    this:ClearFocus()
+  end)
+  
+  input:SetScript("OnEditFocusLost", function()
+    local val = tonumber(this:GetText())
+    if val and val >= 1 and val <= 100 then
+      AutoManaSettings[setting] = val
+    else
+      this:SetText(AutoManaSettings[setting])
+    end
+  end)
+  
+  return input
 end
 
 -- Enable/Disable
@@ -215,56 +252,91 @@ sep1:SetText("Consumables")
 -- Tea
 local teaCheck = CreateCheckbox(SettingsFrame, "Use Nordanaar Herbal Tea / Nightfin Soup", -225, "use_tea")
 local teaLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-teaLabel:SetPoint("TOPLEFT", 235, -227)
+teaLabel:SetPoint("TOPLEFT", 285, -232)
 teaLabel:SetText("Mana <")
-CreateSlider(SettingsFrame, "Tea Threshold", 280, -232, "tea_threshold", 1, 100)
+local teaInput = CreateThresholdInput(SettingsFrame, "tea_threshold")
+teaInput:SetPoint("TOPLEFT", 325, -229)
+local teaPercent = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+teaPercent:SetPoint("LEFT", teaInput, "RIGHT", 3, 0)
+teaPercent:SetText("%")
 
 -- Mana Potion
-local potionCheck = CreateCheckbox(SettingsFrame, "Use Major Mana Potion", -260, "use_potion")
+local potionCheck = CreateCheckbox(SettingsFrame, "Use Major Mana Potion", -255, "use_potion")
 local potionLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-potionLabel:SetPoint("TOPLEFT", 235, -262)
+potionLabel:SetPoint("TOPLEFT", 285, -262)
 potionLabel:SetText("Mana <")
-CreateSlider(SettingsFrame, "Potion Threshold", 280, -267, "potion_threshold", 1, 100)
+local potionInput = CreateThresholdInput(SettingsFrame, "potion_threshold")
+potionInput:SetPoint("TOPLEFT", 325, -259)
+local potionPercent = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+potionPercent:SetPoint("LEFT", potionInput, "RIGHT", 3, 0)
+potionPercent:SetText("%")
 
 -- Rejuv Potion
-local rejuvCheck = CreateCheckbox(SettingsFrame, "Use Major Rejuvenation Potion", -295, "use_rejuv")
+local rejuvCheck = CreateCheckbox(SettingsFrame, "Use Major Rejuvenation Potion", -285, "use_rejuv")
 local rejuvLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-rejuvLabel:SetPoint("TOPLEFT", 235, -297)
+rejuvLabel:SetPoint("TOPLEFT", 285, -292)
 rejuvLabel:SetText("Health <")
-CreateSlider(SettingsFrame, "Rejuv Threshold", 280, -302, "rejuv_threshold", 1, 100)
+local rejuvInput = CreateThresholdInput(SettingsFrame, "rejuv_threshold")
+rejuvInput:SetPoint("TOPLEFT", 325, -289)
+local rejuvPercent = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+rejuvPercent:SetPoint("LEFT", rejuvInput, "RIGHT", 3, 0)
+rejuvPercent:SetText("%")
 
 -- Healthstone
-local healthstoneCheck = CreateCheckbox(SettingsFrame, "Use Healthstone", -330, "use_healthstone")
+local healthstoneCheck = CreateCheckbox(SettingsFrame, "Use Healthstone", -315, "use_healthstone")
 local healthstoneLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-healthstoneLabel:SetPoint("TOPLEFT", 235, -332)
+healthstoneLabel:SetPoint("TOPLEFT", 285, -322)
 healthstoneLabel:SetText("Health <")
-CreateSlider(SettingsFrame, "Healthstone Threshold", 280, -337, "healthstone_threshold", 1, 100)
+local healthstoneInput = CreateThresholdInput(SettingsFrame, "healthstone_threshold")
+healthstoneInput:SetPoint("TOPLEFT", 325, -319)
+local healthstonePercent = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+healthstonePercent:SetPoint("LEFT", healthstoneInput, "RIGHT", 3, 0)
+healthstonePercent:SetText("%")
 
 -- Flask
-local flaskCheck = CreateCheckbox(SettingsFrame, "Use Flask of Distilled Wisdom", -365, "use_flask")
+local flaskCheck = CreateCheckbox(SettingsFrame, "Use Flask of Distilled Wisdom", -345, "use_flask")
 local flaskLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-flaskLabel:SetPoint("TOPLEFT", 235, -367)
+flaskLabel:SetPoint("TOPLEFT", 285, -352)
 flaskLabel:SetText("Mana <")
-CreateSlider(SettingsFrame, "Flask Threshold", 280, -372, "flask_threshold", 1, 100)
+local flaskInput = CreateThresholdInput(SettingsFrame, "flask_threshold")
+flaskInput:SetPoint("TOPLEFT", 325, -349)
+local flaskPercent = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+flaskPercent:SetPoint("LEFT", flaskInput, "RIGHT", 3, 0)
+flaskPercent:SetText("%")
 
 -- Separator
 local sep2 = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-sep2:SetPoint("TOPLEFT", 30, -410)
+sep2:SetPoint("TOPLEFT", 30, -380)
 sep2:SetText("Group Size")
 
 -- Group Size Label
 local groupLabel = SettingsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-groupLabel:SetPoint("TOPLEFT", 30, -440)
+groupLabel:SetPoint("TOPLEFT", 30, -410)
 groupLabel:SetText("Minimum group size:")
 
 -- Group Size Input
-local groupInput = CreateFrame("EditBox", nil, SettingsFrame, "InputBoxTemplate")
-groupInput:SetPoint("TOPLEFT", 160, -437)
-groupInput:SetWidth(50)
+local groupInput = CreateFrame("EditBox", nil, SettingsFrame)
+groupInput:SetPoint("TOPLEFT", 160, -407)
+groupInput:SetWidth(30)
 groupInput:SetHeight(20)
 groupInput:SetAutoFocus(false)
 groupInput:SetMaxLetters(2)
 groupInput:SetNumeric(true)
+groupInput:SetFontObject(GameFontHighlightSmall)
+groupInput:SetJustifyH("CENTER")
+
+-- Custom backdrop instead of InputBoxTemplate
+groupInput:SetBackdrop({
+  bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+  edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+  tile = true, tileSize = 16, edgeSize = 16,
+  insets = { left = 3, right = 3, top = 3, bottom = 3 }
+})
+groupInput:SetBackdropColor(0, 0, 0, 0.5)
+groupInput:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+-- Add text insets so text doesn't overlap border
+groupInput:SetTextInsets(3, 3, 3, 3)
 
 groupInput:SetScript("OnShow", function()
   this:SetText(AutoManaSettings.min_group_size)
@@ -283,6 +355,15 @@ end)
 groupInput:SetScript("OnEscapePressed", function()
   this:SetText(AutoManaSettings.min_group_size)
   this:ClearFocus()
+end)
+
+groupInput:SetScript("OnEditFocusLost", function()
+  local val = tonumber(this:GetText())
+  if val and val >= 0 and val <= 40 then
+    AutoManaSettings.min_group_size = val
+  else
+    this:SetText(AutoManaSettings.min_group_size)
+  end
 end)
 
 -- Info text
