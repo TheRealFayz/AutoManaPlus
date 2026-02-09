@@ -2,8 +2,6 @@
 
 AutoMana+ automatically uses mana and health consumables when casting spells in World of Warcraft 1.12 (Vanilla).
 
-Created by **Fayz**.
-
 <img src="https://github.com/TheRealFayz/AutoManaPlus/blob/main/Images/Settings.png?raw=true">
 
 ## Features
