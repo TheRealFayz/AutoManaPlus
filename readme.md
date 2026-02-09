@@ -4,6 +4,8 @@ AutoMana+ automatically uses mana and health consumables when casting spells in 
 
 Created by **Fayz**.
 
+<img src="https://github.com/TheRealFayz/AutoManaPlus/blob/main/Images/Settings.png?raw=true">
+
 ## Features
 
 - **Minimap Button** - Easy access settings via a Major Mana Potion icon on your minimap
