@@ -1,8 +1,0 @@
-## Interface: 11200
-## Title: AutoMana+
-## Notes: Automatic Mana Consume Usage - by Fayz
-## X-Category: Interface Enhancements
-## Version: 1.0.4
-## SavedVariablesPerCharacter: AutoManaSettings
-
-AutoMana+.lua
