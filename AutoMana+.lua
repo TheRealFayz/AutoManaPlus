@@ -497,8 +497,12 @@ local function CreateSettingsFrame()
     groupInput:SetAutoFocus(false)
     groupInput:SetMaxLetters(2)
     groupInput:SetFontObject(GameFontHighlight)
-    groupInput:SetText(tostring(AutoManaPlusDB.minGroupSize))
     groupInput:SetJustifyH("CENTER")  -- Center align the text
+    
+    -- Refresh displayed value when settings frame is shown
+    groupInput:SetScript("OnShow", function()
+        this:SetText(tostring(AutoManaPlusDB.minGroupSize))
+    end)
     
     groupInput:SetBackdrop({
         bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -557,8 +561,12 @@ local function CreateSettingsFrame()
         thresholdInput:SetAutoFocus(false)
         thresholdInput:SetMaxLetters(3)
         thresholdInput:SetFontObject(GameFontHighlight)
-        thresholdInput:SetText(tostring(AutoManaPlusDB[thresholdKey]))
         thresholdInput:SetJustifyH("CENTER")  -- Center align the text
+        
+        -- Refresh displayed value when settings frame is shown
+        thresholdInput:SetScript("OnShow", function()
+            this:SetText(tostring(AutoManaPlusDB[thresholdKey]))
+        end)
         
         thresholdInput:SetBackdrop({
             bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
